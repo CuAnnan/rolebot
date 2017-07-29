@@ -1,0 +1,179 @@
+'use strict';
+const   conf = require('./conf.js');
+
+let RoleBot = {
+		electiveRoles: {},
+		initialised: false,
+		mongo: null,
+		exposedMethods: {}
+	};
+
+function elevate(member)
+{
+	if(!(member.roles.exists('name', conf.roles.mod) || member.roles.exists('name', conf.roles.admin)))
+	{
+		throw {
+			name:'permissionFailedException',
+			message:member.user.username+' tried an elevated role thing',
+			toString:function(){return this.message}
+		};
+	}
+}
+
+RoleBot.addElectiveRole = function(commandArguments, message, comment)
+{
+	elevate(message.member);
+	let roles = this._parseRoles(message);
+	for(let role of roles)
+	{
+		if(!this.findRole(message, role))
+		{
+			message.guild.createRole({name: role}).then();
+		}
+	}
+	
+	this.addElectiveRolesToDatabase(message.guild.id, roles).then(
+		()=>{
+			message.channel.send('BEEP BOOP\nAdded elected roles '+roles.join(', ')+' to this server');
+		}
+	).catch(
+		(error)=>{
+			console.log(error);
+		}
+	)
+};
+
+RoleBot.findRole = function(message, name)
+{
+	return message.guild.roles.find('name', name);
+};
+
+RoleBot._parseRoles = function(message)
+{
+	return message.content.match(/(@[\w\ ]+)/g);
+}
+
+RoleBot.addElectiveRolesToDatabase = function(guildID, roles)
+{
+	return this.collection.updateOne(
+		{guildID:guildID},
+		{
+			$addToSet:{
+				roles:{$each:roles}
+			}
+		},
+		{upsert:true}
+	);
+};
+
+RoleBot.electRole = function(commandArguments, message, comment)
+{
+	this._getElectiveRoles(message.guild.id).then((result)=>{
+		let electableRoles = result.roles,
+			electedRoles = this._parseRoles(message);
+		for(let electedRole of electedRoles)
+		{
+			if(electableRoles.indexOf(electedRole) >= 0)
+			{
+				let role = this.findRole(message, electedRole);
+				if(role)
+				{
+					message.member.addRole(role);
+				}
+				else
+				{
+					console.warn(message.author.username+' tried to add a nonexistant role '+electedRole+' to their roles');
+				}
+			}
+			else
+			{
+				console.warn(message.author.username+' tried to add a non elective role '+electedRole+' to their roles');
+			}
+		}
+	});
+};
+
+RoleBot._getElectiveRoles = function(guildID)
+{
+	return this.collection.findOne({guildID: guildID});
+};
+
+RoleBot.process = function(message)
+{
+	// only process commands
+	if(!message.content.startsWith(conf.commandPrefix))
+	{
+		return;
+	}
+	// don't process "private" methods
+	if(message.content.startsWith(conf.commandPrefix+'_'))
+	{
+		return;
+	}
+	// don't allow dms
+	if(message.channel.type == 'dm')
+	{
+		message.channel.send("You cannot use this bot via DM yet for technical reasons");
+		return;
+	}
+	
+	/**
+	 * A command is given in the form
+	 * !command argument argument argument -- some comment
+	 */
+	let args = message.content.substring(1).split('--'),
+		comment = args[1]?args[1].trim():'',
+		commandArguments = args[0].toLowerCase().split(' '),
+		command = commandArguments.shift(),
+		commandsToIgnore = ['process', 'init', 'destruct'],
+		method = this.exposedMethods[command];
+	console.log('Should be processing command');
+	
+	if(!method)
+	{
+		return;
+	}
+	
+	this[method](commandArguments, message, comment);
+};
+
+RoleBot.init = function()
+{
+	let self = this;
+	this.exposedMethods = {
+		'addrole':'addElectiveRole',
+		'electrole':'electRole'
+	};
+	
+	return new Promise(
+		(resolve, reject)=>
+		{
+			let MongoClient = require('mongodb').MongoClient;
+			MongoClient.connect(
+				conf.mongoURL,
+				function(err, db)
+				{
+					if(err)
+					{
+						reject(err);
+					}
+					console.log('Hoisted mongo instance');
+					self.mongo = db;
+					self.collection = db.collection(conf.mongoCollection);
+					resolve('Success');
+				}
+			)
+		}
+	);
+};
+
+RoleBot.destroy = function()
+{
+	if(this.mongo)
+	{
+		console.log('Closed mongo instance');
+		this.mongo.close();
+	}
+}
+
+module.exports = RoleBot;
