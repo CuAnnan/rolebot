@@ -60,7 +60,7 @@ RoleBot._parseRoles = function(message)
 	for(let i = 0; i < roleTags.length; i++)
 	{
 		let roleTag = roleTags[i].substring(1);
-		let roleName = roleTag.charAt(0).toUpperCase() + roleTag.substring(1);
+		let roleName = roleTag.charAt(0).toUpperCase() + roleTag.substring(1).trim();
 		roleNames.push(roleName);
 	}
 	return roleNames;
