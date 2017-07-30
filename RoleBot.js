@@ -48,15 +48,18 @@ RoleBot.addElectiveRole = function(commandArguments, message, comment)
 
 RoleBot.findRole = function(message, name)
 {
+	console.log('Trying to find role '+name);
 	return message.guild.roles.find('name', name);
 };
 
 RoleBot._parseRoles = function(message)
 {
-	let roleTags = message.content.match(/(@[\w\ ]+)/g);
+	let roleTags = message.cleanContent.match(/(@[\w\ ]+)/g);
+	console.log(roleTags);
 	let roleNames = [];
-	for(let roleTag of roleTags)
+	for(let i = 0; i < roleTags.length; i++)
 	{
+		let roleTag = roleTags[i];
 		roleNames.push(roleTag.substring(1));
 	}
 	return roleNames;
