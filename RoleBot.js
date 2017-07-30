@@ -151,7 +151,13 @@ RoleBot.electRole = function(commandArguments, message, comment)
 				let role = this.findRole(message, electedRole);
 				if(role)
 				{
-					message.member.addRole(role);
+					console.log('Trying to add role '+electedRole+' to '+message.author.username);
+					message.member.addRole(role).then(
+						()=>{
+							console.log('Added role '+electedRole+' to '+message.author.username);
+						}
+					);
+					
 				}
 				else
 				{
