@@ -59,8 +59,9 @@ RoleBot._parseRoles = function(message)
 	let roleNames = [];
 	for(let i = 0; i < roleTags.length; i++)
 	{
-		let roleTag = roleTags[i];
-		roleNames.push(roleTag.substring(1));
+		let roleTag = roleTags[i].substring(1);
+		let roleName = roleTag.charAt(0).toUpperCase() + roleTag.substring(1);
+		roleNames.push(roleName);
 	}
 	return roleNames;
 }
@@ -155,7 +156,8 @@ RoleBot.electRole = function(commandArguments, message, comment)
 	this._getElectiveRoles(message.guild.id).then((result)=>{
 		let electableRoles = result.roles,
 			electedRoles = this._parseRoles(message);
-		for(let electedRole of electedRoles)
+		
+		for(let electedRole of electableRoles)
 		{
 			if(electableRoles.indexOf(electedRole) >= 0)
 			{
