@@ -10,7 +10,10 @@ let RoleBot = {
 
 function elevate(member)
 {
-	if(!(member.roles.exists('name', conf.roles.mod) || member.roles.exists('name', conf.roles.admin)))
+	if(!(
+		member.roles.exists('name', conf.roles.mod) || member.roles.exists('name', conf.roles.admin) ||
+		member.roles.exists('name', '@'+conf.roles.mod) || member.roles.exists('name', '@'+conf.roles.admin)
+	))
 	{
 		throw {
 			name:'permissionFailedException',
@@ -50,7 +53,13 @@ RoleBot.findRole = function(message, name)
 
 RoleBot._parseRoles = function(message)
 {
-	return message.content.match(/(@[\w\ ]+)/g);
+	let roleTags = message.content.match(/(@[\w\ ]+)/g);
+	let roleNames = []
+	for(let roleTag of roleTags)
+	{
+		roleNames.push(roleTag.substring(1));
+	}
+	return roleNames;
 }
 
 RoleBot.addElectiveRolesToDatabase = function(guildID, roles)
