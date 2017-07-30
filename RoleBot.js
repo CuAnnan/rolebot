@@ -156,7 +156,7 @@ RoleBot.electRole = function(commandArguments, message, comment)
 	this._getElectiveRoles(message.guild.id).then((result)=>{
 		let electableRoles = result.roles,
 			electedRoles = this._parseRoles(message);
-		
+		console.log(electableRoles);
 		for(let electedRole of electedRoles)
 		{
 			if(electableRoles.indexOf(electedRole) >= 0)
