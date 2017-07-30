@@ -124,7 +124,17 @@ RoleBot.unelectRoles = function(commandArguments, message, comment)
 				let role = this.findRole(message, electedRole);
 				if(role)
 				{
-					message.member.removeRole(role);
+					message.member.removeRole(role).then(
+						()=>
+						{
+							console.author(mesage.author.username+' tried to dropped role '+electedRole);
+						}
+					).catch(
+						(err)=>
+						{
+							console.log(err);
+						}
+					);
 				}
 				else
 				{
