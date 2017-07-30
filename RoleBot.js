@@ -194,8 +194,14 @@ RoleBot.process = function(message)
 	{
 		return;
 	}
-	
-	this[method](commandArguments, message, comment);
+	try
+	{
+		this[method](commandArguments, message, comment);
+	}
+	catch(e)
+	{
+		console.log(e);
+	}
 };
 
 RoleBot.help = function(commandArguments, message, comment)
