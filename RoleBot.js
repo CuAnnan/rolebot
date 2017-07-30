@@ -261,6 +261,7 @@ RoleBot.init = function()
 		'addrole':'addElectiveRole',
 		'addroles':'addElectiveRole',
 		'electrole':'electRole',
+		'elect':'electRole',
 		'electroles':'electRole',
 		'listroles':'listRoles',
 		'droprole':'dropRoles',
