@@ -54,7 +54,7 @@ RoleBot.findRole = function(message, name)
 RoleBot._parseRoles = function(message)
 {
 	let roleTags = message.content.match(/(@[\w\ ]+)/g);
-	let roleNames = []
+	let roleNames = [];
 	for(let roleTag of roleTags)
 	{
 		roleNames.push(roleTag.substring(1));
