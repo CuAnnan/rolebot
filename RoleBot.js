@@ -157,7 +157,7 @@ RoleBot.electRole = function(commandArguments, message, comment)
 		let electableRoles = result.roles,
 			electedRoles = this._parseRoles(message);
 		
-		for(let electedRole of electableRoles)
+		for(let electedRole of electedRoles)
 		{
 			if(electableRoles.indexOf(electedRole) >= 0)
 			{
