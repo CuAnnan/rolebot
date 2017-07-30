@@ -242,7 +242,8 @@ RoleBot.init = function()
 		'unelect':'unelectRoles',
 		'unelectrole':'unelectRoles',
 		'unelectroles':'unelectRoles',
-		'rolehelp':'help'
+		'rolehelp':'help',
+		'roleshelp':'help'
 	};
 	
 	return new Promise(
