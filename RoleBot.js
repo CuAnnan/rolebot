@@ -151,6 +151,7 @@ RoleBot.unelectRoles = function(commandArguments, message, comment)
 
 RoleBot.electRole = function(commandArguments, message, comment)
 {
+	
 	this._getElectiveRoles(message.guild.id).then((result)=>{
 		let electableRoles = result.roles,
 			electedRoles = this._parseRoles(message);
@@ -165,6 +166,10 @@ RoleBot.electRole = function(commandArguments, message, comment)
 					message.member.addRole(role).then(
 						()=>{
 							console.log('Added role '+electedRole+' to '+message.author.username);
+						}
+					).catch(
+						(err)=>{
+							console.log(err);
 						}
 					);
 					
