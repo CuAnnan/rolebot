@@ -66,6 +66,67 @@ RoleBot.addElectiveRolesToDatabase = function(guildID, roles)
 	);
 };
 
+RoleBot.listRoles = function(commandArguments, message, comment)
+{
+	this._getElectiveRoles(message.guild.id).then(
+		(response)=>{
+			message.channel.send('BEEP BOOP\nAvailable elective roles: '+response.roles.join(', '));
+		}
+	);
+	
+};
+
+RoleBot.dropRoles = function(commandArguments, message, comment)
+{
+	elevate(message.member);
+	let roles = this._parseRoles(message);
+	for(let roleName of roles)
+	{
+		let role = this.findRole(message, roleName);
+		role.delete();
+	}
+	this._dropRoles(message.guild.id, roles).then(
+		()=>{
+			message.channel.send('BEEP BOOP\nRoles '+roles.join(', ')+' dropped');
+		}
+	);
+};
+
+RoleBot._dropRoles = function(guildID, roles)
+{
+	return this.collection.updateOne(
+		{guildID:guildID},
+		{$pull:{roles:{$in:roles}}}
+	);
+}
+
+RoleBot.unelectRoles = function(commandArguments, message, comment)
+{
+	this._getElectiveRoles(message.guild.id).then((result)=>{
+		let electableRoles = result.roles,
+			electedRoles = this._parseRoles(message);
+		for(let electedRole of electedRoles)
+		{
+			if(electableRoles.indexOf(electedRole) >= 0)
+			{
+				let role = this.findRole(message, electedRole);
+				if(role)
+				{
+					message.member.removeRole(role);
+				}
+				else
+				{
+					console.warn(message.author.username+' tried to add a nonexistant role '+electedRole+' to their roles');
+				}
+			}
+			else
+			{
+				console.warn(message.author.username+' tried to add a non elective role '+electedRole+' to their roles');
+			}
+		}
+	});
+};
+
 RoleBot.electRole = function(commandArguments, message, comment)
 {
 	this._getElectiveRoles(message.guild.id).then((result)=>{
@@ -137,12 +198,36 @@ RoleBot.process = function(message)
 	this[method](commandArguments, message, comment);
 };
 
+RoleBot.help = function(commandArguments, message, comment)
+{
+	message.channel.send([
+			'BEEP BOOP',
+			'Role bot commands:',
+			'*addRole: Adds an elective role to the set*',
+			'electRole: Adds a role to your account',
+			'listRoles: Shows a list of all elective roles available',
+			'*dropRole: Drops a role from the elective set*',
+			'unelect: Removes a role from your account',
+			'rolehelp: Shows this text',
+			'Italic commands require the @Mod role'
+	]);
+}
+
 RoleBot.init = function()
 {
 	let self = this;
 	this.exposedMethods = {
 		'addrole':'addElectiveRole',
-		'electrole':'electRole'
+		'addroles':'addElectiveRole',
+		'electrole':'electRole',
+		'electroles':'electRole',
+		'listroles':'listRoles',
+		'droprole':'dropRoles',
+		'droproles':'dropRoles',
+		'unelect':'unelectRoles',
+		'unelectrole':'unelectRoles',
+		'unelectroles':'unelectRoles',
+		'rolehelp':'help'
 	};
 	
 	return new Promise(
